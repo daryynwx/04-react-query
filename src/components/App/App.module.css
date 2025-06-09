@@ -1,3 +1,45 @@
-.app {
+.container {
+    max-width: 100%;
+    /* або 100%, якщо без обмеження */
+    margin: 0 auto;
     padding: 0 16px;
+}
+
+.form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.input {
+    flex: 1;
+    padding: 8px;
+    font-size: 16px;
+}
+
+.button {
+    padding: 8px 16px;
+    font-size: 16px;
+    background-color: #0a66c2;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Автоматично розподіляє колонки */
+    gap: 16px;
+    padding: 24px 0;
+  }
+  
+
+.card {
+    text-align: center;
+}
+
+.image {
+    width: 100%;
+    border-radius: 8px;
 }
