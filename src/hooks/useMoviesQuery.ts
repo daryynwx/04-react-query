@@ -7,7 +7,7 @@ export default function useMoviesQuery(query: string, page: number) {
     queryKey: ['movies', query, page],
     queryFn: () => fetchMovies(query, page),
     staleTime: 1000 * 60 * 5,
-    placeholderData: (previousData) => previousData,
+    placeholderData: (previousData: any) => previousData,
 
   });
 }

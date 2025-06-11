@@ -1,19 +1,16 @@
-import type { ReactNode } from "react";
-
 export interface Movie {
-    backdrop_path: any;
-    release_date: ReactNode;
-    vote_average: ReactNode;
-    overview: ReactNode;
-    id: number;
-    title: string;
-    poster_path: string;
-  }
-  
-  export interface MoviesResponse {
-    page: number;
-    results: Movie[];
-    total_pages: number;
-    total_results: number;
-  }
-  
+  id: number;
+  title: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  overview: string;
+  release_date: string;
+  vote_average: number;
+}
+
+export interface MoviesResponse {
+  page: number;
+  total_pages: number;
+  total_results: number;
+  results: Movie[];
+}

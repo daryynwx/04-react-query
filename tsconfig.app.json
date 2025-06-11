@@ -21,7 +21,10 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    /* 🧩 Додай це поле */
+    "types": ["vite/client", "react", "react-dom", "react-router-dom"]
   },
   "include": ["src"]
 }
