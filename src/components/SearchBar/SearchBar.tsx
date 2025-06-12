@@ -1,12 +1,12 @@
-import { type FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import { toast } from 'react-hot-toast';
 import css from './SearchBar.module.css';
 
 interface SearchBarProps {
-  action: (formData: FormData) => void;
+  onSubmit: (query: string) => void;
 }
 
-function SearchBar({ action }: SearchBarProps) {
+function SearchBar({ onSubmit }: SearchBarProps) {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -19,7 +19,8 @@ function SearchBar({ action }: SearchBarProps) {
       return;
     }
 
-    action(formData);
+    onSubmit(query);
+    form.reset(); // очищення поля
   };
 
   return (

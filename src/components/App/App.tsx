@@ -1,62 +1,77 @@
 import { useState } from 'react';
-import useMoviesQuery from '../../hooks/useMoviesQuery';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { Toaster, toast } from 'react-hot-toast';
+
+import SearchBar from '../SearchBar/SearchBar';
+import MovieGrid from '../MovieGrid/MovieGrid';
+import MovieModal from '../MovieModal/MovieModal';
 import Pagination from '../Pagination/Pagination';
-import type { Movie } from '../../types/movie';
+import Loader from '../Loader/Loader';
+import ErrorMessage from '../ErrorMessage/ErrorMessage';
+
+import { type MoviesResponse } from '../../services/movieService';
+
 import css from './App.module.css';
+import type { Movie } from '../../types/movie';
+
+const fetchMovies = async (query: string, page: number) => {
+  const response = await axios.get<MoviesResponse>(
+    `https://api.themoviedb.org/3/search/movie`,
+    {
+      params: {
+        api_key: '6a536583a073528c4ba627bb24aadf86', 
+        query,
+        page,
+      },
+    }
+  );
+  return response.data;
+};
 
 function App() {
-  const [query, setQuery] = useState('matrix');
+  const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const { data, isLoading, isError, error, isSuccess } = useMoviesQuery(query, page);
+  const { data, isLoading, isError, error, isSuccess } = useQuery({
+    queryKey: ['movies', query, page],
+    queryFn: () => fetchMovies(query, page),
+    enabled: !!query,
+    placeholderData: (prevData) => prevData,
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const input = form.elements.namedItem('query') as HTMLInputElement;
-    const trimmed = input.value.trim();
+  });
 
-    if (!trimmed) return alert('Please enter a movie title.');
-
-    setQuery(trimmed);
+  const handleSearch = (newQuery: string) => {
+    if (newQuery === query) return;
+    setQuery(newQuery);
     setPage(1);
   };
 
+  const handleMovieSelect = (movie: Movie) => {
+    setSelectedMovie(movie);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedMovie(null);
+  };
+
+  if (isSuccess && data.results.length === 0) {
+    toast.error(`Фільми за запитом "${query}" не знайдено`);
+  }
+
   return (
     <div className={css.container}>
-      <h1>Movie Search</h1>
+      <Toaster />
+      <h1 className={css.title}>Movie Search</h1>
+      <SearchBar onSubmit={handleSearch} />
 
-      <form onSubmit={handleSubmit} className={css.form}>
-        <input
-          type="text"
-          name="query"
-          placeholder="Enter movie title..."
-          className={css.input}
-          defaultValue={query}
-        />
-        <button type="submit" className={css.button}>
-          Search
-        </button>
-      </form>
-
-      {isLoading && <p>Loading...</p>}
-      {isError && <p>Error: {error.message}</p>}
-      {isSuccess && data.results.length === 0 && <p>No results found for "{query}"</p>}
+      {isLoading && <Loader />}
+      {isError && <ErrorMessage message={(error as Error).message} />}
 
       {isSuccess && data.results.length > 0 && (
         <>
-          <ul className={css.grid}>
-            {data.results.map((movie: Movie) => (
-              <li key={movie.id} className={css.card}>
-                <img
-                  src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
-                  alt={movie.title}
-                  className={css.image}
-                />
-                <h3>{movie.title}</h3>
-              </li>
-            ))}
-          </ul>
+          <MovieGrid movies={data.results} onSelect={handleMovieSelect} />
 
           {data.total_pages > 1 && (
             <Pagination
@@ -66,6 +81,10 @@ function App() {
             />
           )}
         </>
+      )}
+
+      {selectedMovie && (
+        <MovieModal movie={selectedMovie} onClose={handleCloseModal} />
       )}
     </div>
   );
