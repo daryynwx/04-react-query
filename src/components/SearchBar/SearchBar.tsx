@@ -1,24 +1,25 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent } from 'react';
 import { toast } from 'react-hot-toast';
 import css from './SearchBar.module.css';
 
 interface SearchBarProps {
-  onSearch: (query: string) => void;
+  action: (formData: FormData) => void;
 }
 
-function SearchBar({ onSearch }: SearchBarProps) {
-  const [input, setInput] = useState('');
-
-  const handleSubmit = (e: FormEvent) => {
+function SearchBar({ action }: SearchBarProps) {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const query = input.trim();
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const query = formData.get('query')?.toString().trim();
 
     if (!query) {
       toast.error('Будь ласка, введіть пошуковий запит');
       return;
     }
 
-    onSearch(query);
+    action(formData);
   };
 
   return (
@@ -27,8 +28,6 @@ function SearchBar({ onSearch }: SearchBarProps) {
         className={css.input}
         type="text"
         name="query"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
         placeholder="Пошук фільмів..."
         autoComplete="off"
       />
