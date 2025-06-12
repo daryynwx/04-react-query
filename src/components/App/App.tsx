@@ -11,18 +11,20 @@ import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 
 import { type MoviesResponse } from '../../services/movieService';
+import type { Movie } from '../../types/movie';
 
 import css from './App.module.css';
-import type { Movie } from '../../types/movie';
 
 const fetchMovies = async (query: string, page: number) => {
   const response = await axios.get<MoviesResponse>(
     `https://api.themoviedb.org/3/search/movie`,
     {
       params: {
-        api_key: '6a536583a073528c4ba627bb24aadf86', 
         query,
         page,
+      },
+      headers: {
+        Authorization: `Bearer ${import.meta.env.VITE_TMDB_TOKEN}`,
       },
     }
   );
@@ -39,11 +41,18 @@ function App() {
     queryFn: () => fetchMovies(query, page),
     enabled: !!query,
     placeholderData: (prevData) => prevData,
-
   });
 
-  const handleSearch = (newQuery: string) => {
+  const handleSearch = (formData: FormData) => {
+    const newQuery = formData.get('query')?.toString().trim() || '';
+
+    if (!newQuery) {
+      toast.error('Будь ласка, введіть пошуковий запит');
+      return;
+    }
+
     if (newQuery === query) return;
+
     setQuery(newQuery);
     setPage(1);
   };
@@ -56,23 +65,23 @@ function App() {
     setSelectedMovie(null);
   };
 
-  if (isSuccess && data.results.length === 0) {
-    toast.error(`Фільми за запитом "${query}" не знайдено`);
-  }
-
   return (
     <div className={css.container}>
       <Toaster />
       <h1 className={css.title}>Movie Search</h1>
-      <SearchBar onSubmit={handleSearch} />
+
+      <SearchBar action={handleSearch} />
 
       {isLoading && <Loader />}
-      {isError && <ErrorMessage message={(error as Error).message} />}
+      {isError && <ErrorMessage message={error.message} />}
+
+      {isSuccess && data.results.length === 0 && (
+        toast.error(`Фільми за запитом "${query}" не знайдено`)
+      )}
 
       {isSuccess && data.results.length > 0 && (
         <>
           <MovieGrid movies={data.results} onSelect={handleMovieSelect} />
-
           {data.total_pages > 1 && (
             <Pagination
               totalPages={data.total_pages}

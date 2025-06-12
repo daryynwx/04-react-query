@@ -1,30 +1,25 @@
-import type { FormEvent } from 'react';
 import { toast } from 'react-hot-toast';
 import css from './SearchBar.module.css';
 
 interface SearchBarProps {
-  onSubmit: (query: string) => void;
+  action: (formData: FormData) => void;
 }
 
-function SearchBar({ onSubmit }: SearchBarProps) {
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const query = formData.get('query')?.toString().trim();
-
-    if (!query) {
-      toast.error('Будь ласка, введіть пошуковий запит');
-      return;
-    }
-
-    onSubmit(query);
-    form.reset(); // очищення поля
-  };
-
+function SearchBar({ action }: SearchBarProps) {
   return (
-    <form className={css.form} onSubmit={handleSubmit}>
+    <form
+      className={css.form}
+      action={(formData) => {
+        const query = formData.get('query')?.toString().trim();
+
+        if (!query) {
+          toast.error('Будь ласка, введіть пошуковий запит');
+          return;
+        }
+
+        action(formData);
+      }}
+    >
       <input
         className={css.input}
         type="text"
