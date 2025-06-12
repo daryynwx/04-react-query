@@ -1,35 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import { Toaster, toast } from 'react-hot-toast';
 
 import SearchBar from '../SearchBar/SearchBar';
 import MovieGrid from '../MovieGrid/MovieGrid';
 import MovieModal from '../MovieModal/MovieModal';
-import Pagination from '../Pagination/Pagination';
 import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
+import ReactPaginate from 'react-paginate';
 
-import { type MoviesResponse } from '../../services/movieService';
+import { fetchMovies } from '../../services/movieService';
+import type { MoviesResponse } from '../../services/movieService';
 import type { Movie } from '../../types/movie';
 
 import css from './App.module.css';
-
-const fetchMovies = async (query: string, page: number) => {
-  const response = await axios.get<MoviesResponse>(
-    `https://api.themoviedb.org/3/search/movie`,
-    {
-      params: {
-        query,
-        page,
-      },
-      headers: {
-        Authorization: `Bearer ${import.meta.env.VITE_TMDB_TOKEN}`,
-      },
-    }
-  );
-  return response.data;
-};
 
 function App() {
   const [query, setQuery] = useState('');
@@ -43,18 +27,21 @@ function App() {
     placeholderData: (prevData) => prevData,
   });
 
-  const handleSearch = (formData: FormData) => {
-    const newQuery = formData.get('query')?.toString().trim() || '';
-
-    if (!newQuery) {
-      toast.error('Будь ласка, введіть пошуковий запит');
-      return;
+  // Toast error for no results
+  useEffect(() => {
+    if (isSuccess && data.results.length === 0) {
+      toast.error(`Фільми за запитом "${query}" не знайдено`);
     }
+  }, [isSuccess, data, query]);
 
+  const handleSearch = (newQuery: string) => {
     if (newQuery === query) return;
-
     setQuery(newQuery);
     setPage(1);
+  };
+
+  const handlePageChange = ({ selected }: { selected: number }) => {
+    setPage(selected + 1);
   };
 
   const handleMovieSelect = (movie: Movie) => {
@@ -70,23 +57,23 @@ function App() {
       <Toaster />
       <h1 className={css.title}>Movie Search</h1>
 
-      <SearchBar action={handleSearch} />
+      <SearchBar onSubmit={handleSearch} />
 
       {isLoading && <Loader />}
       {isError && <ErrorMessage message={error.message} />}
-
-      {isSuccess && data.results.length === 0 && (
-        toast.error(`Фільми за запитом "${query}" не знайдено`)
-      )}
 
       {isSuccess && data.results.length > 0 && (
         <>
           <MovieGrid movies={data.results} onSelect={handleMovieSelect} />
           {data.total_pages > 1 && (
-            <Pagination
-              totalPages={data.total_pages}
-              currentPage={page}
-              onPageChange={setPage}
+            <ReactPaginate
+              pageCount={data.total_pages}
+              forcePage={page - 1}
+              onPageChange={handlePageChange}
+              containerClassName={css.pagination}
+              activeClassName={css.active}
+              previousLabel="←"
+              nextLabel="→"
             />
           )}
         </>
