@@ -1,18 +1,13 @@
-import { type FormEvent } from 'react';
-import css from './SearchBar.module.css';
 import { toast } from 'react-hot-toast';
+import styles from './SearchBar.module.css';
 
 interface SearchBarProps {
   onSubmit: (query: string) => void;
 }
 
-function SearchBar({ onSubmit }: SearchBarProps) {
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const query = formData.get('query')?.toString().trim() || '';
+const SearchBar = ({ onSubmit }: SearchBarProps) => {
+  const formAction = (formData: FormData) => {
+    const query = formData.get('query')?.toString().trim();
 
     if (!query) {
       toast.error('Будь ласка, введіть пошуковий запит');
@@ -20,23 +15,35 @@ function SearchBar({ onSubmit }: SearchBarProps) {
     }
 
     onSubmit(query);
-    form.reset();
   };
 
   return (
-    <form className={css.form} onSubmit={handleSubmit}>
-      <input
-        className={css.input}
-        type="text"
-        name="query"
-        placeholder="Пошук фільмів..."
-        autoComplete="off"
-      />
-      <button className={css.button} type="submit">
-        Пошук
-      </button>
-    </form>
+    <header className={styles.header}>
+      <div className={styles.container}>
+        <a
+          className={styles.link}
+          href="https://www.themoviedb.org/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Powered by TMDB
+        </a>
+        <form className={styles.form} action={formAction}>
+          <input
+            className={styles.input}
+            type="text"
+            name="query"
+            autoComplete="off"
+            placeholder="Пошук фільмів..."
+            autoFocus
+          />
+          <button className={styles.button} type="submit">
+            Пошук
+          </button>
+        </form>
+      </div>
+    </header>
   );
-}
+};
 
 export default SearchBar;
